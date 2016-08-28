@@ -2,9 +2,10 @@
 // SwitchDoc Labs August 2016
 //
 
+#undef TXDEBUG
 #include <JeeLib.h>
 
-#define SOFTWAREVERSION 002
+#define SOFTWAREVERSION 003
 
 // WIRELESSID is changed if you have more than one unit reporting in the same area.  It is coded in protocol as WIRELESSID*10+SOFTWAREVERSION
 #define WIRELESSID 1
@@ -70,7 +71,7 @@ SoftwareSerial SoftSerial(6, 7); // TX, RX
 unsigned long MessageCount = 0;
 
 
-#define DEBUG
+
 
 
 
@@ -217,12 +218,12 @@ int convert2ByteVariables(int bufferCount, int myVariable)
   bufferCount++;
   byteBuffer[bufferCount] = thing.bytes[1];
   bufferCount++;
-
+#if defined(TXDEBUG)
   Serial.println("-------");
   Serial.println(thing.bytes[0]);
   Serial.println(thing.bytes[1]);
   Serial.println("------");
-
+#endif
   return bufferCount;
 
 }
@@ -242,8 +243,10 @@ int checkSum(int bufferCount)
   unsigned short checksumValue;
   // calculate checksum
   checksumValue = crc.XModemCrc(byteBuffer, 0, 59);
+#if defined(TXDEBUG)
   Serial.print("crc = 0x");
   Serial.println(checksumValue, HEX);
+#endif
 
   byteBuffer[bufferCount] = checksumValue >> 8;
   bufferCount++;
@@ -398,19 +401,22 @@ void ResetWatchdog()
   pinMode(WATCHDOG_1, OUTPUT);
   delay(200);
   pinMode(WATCHDOG_1, INPUT);
+#if defined(TXDEBUG)
   Serial.println("Watchdog1 Reset - Patted the Dog");
-
+#endif
 }
 
 
 
 void setup()
 {
-  Serial.begin(115200);    // Debugging only
+  Serial.begin(115200);    // TXDEBUGging only
 
   SoftSerial.begin(9600);
 
   Serial.println("--------WeatherRack WeatherLink_Tx Started-------");
+  Serial.print("Software Version:");
+  Serial.println(SOFTWAREVERSION);
   // setup initial values of variables
 
   wakeState = REBOOT;
@@ -566,13 +572,15 @@ void loop()
   if (DS3231_Present)
   {
     RTC.get();
+#if defined(TXDEBUG)
     digitalClockDisplay();
+#endif
   }
   // Only send if source is SLEEP_INTERRUPT
-
+#if defined(TXDEBUG)
   Serial.print("wakeState=");
   Serial.println(wakeState);
-
+#endif
 
 
   if ((wakeState == SLEEP_INTERRUPT) || (wakeState == ALARM_INTERRUPT))
@@ -688,8 +696,10 @@ void loop()
     long timeBefore;
     long timeAfter;
     timeBefore = millis();
+#if defined(TXDEBUG)
     Serial.print("timeBeforeSleep=");
     Serial.println(timeBefore);
+#endif
     delay(100);
     // This is what we use for sleep if DS3231 is not present
     if (DS3231_Present == false)
@@ -700,9 +710,11 @@ void loop()
 
       wakeState = SLEEP_INTERRUPT;
 
+#if defined(TXDEBUG)
       Serial.print("Awake now: ");
-
+#endif
       timeAfter = millis();
+#if defined(TXDEBUG)
       Serial.print("timeAfterSleep=");
       Serial.println(timeAfter);
 
@@ -710,19 +722,24 @@ void loop()
       Serial.println(timeAfter - timeBefore);
 
       Serial.print("Millis Time: ");
+#endif
       long time;
       time = millis();
+#if defined(TXDEBUG)
       //prints time since program started
       Serial.println(time / 1000.0);
       Serial.print("2wakeState=");
       Serial.println(wakeState);
+#endif
     }
   }
 
   if (DS3231_Present == true)
   {
     // use DS3231 Alarm to Wake up
+#if defined(TXDEBUG)
     Serial.println(F("Using DS3231 to Wake Up"));
+#endif
     delay(100);
     Sleepy::powerDown ();
 
