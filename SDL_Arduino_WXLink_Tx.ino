@@ -1,14 +1,14 @@
 // SDL_Arduino_WeatherLink_Tx
 // SwitchDoc Labs August 2016
 //
-
+//#define TXDEBUG
 #undef TXDEBUG
 #include <JeeLib.h>
 
-#define SOFTWAREVERSION 003
+#define SOFTWAREVERSION 004
 
 // WIRELESSID is changed if you have more than one unit reporting in the same area.  It is coded in protocol as WIRELESSID*10+SOFTWAREVERSION
-#define WIRELESSID 1
+#define WIRELESSID 2
 
 
 #include "Crc16.h"
@@ -81,7 +81,8 @@ unsigned long MessageCount = 0;
 #include <Time.h>
 #include <Wire.h>
 
-#include <ESG_AM2315.h>
+// Note:   We found a long term reliablity problem with the AM2315 (took weeks to manifest), so we went to our High Reliablity AM2315 and modified it to work on the Mini Pro LP.
+#include "SDL_ESP8266_HR_AM2315.h"
 
 typedef enum  {
 
@@ -122,6 +123,9 @@ float AuxB;
 int protocolBufferCount;
 
 wakestate wakeState;  // who woke us up?
+
+bool Alarm_State_1;
+bool Alarm_State_2;
 bool ignore_anemometer_interrupt;
 
 long nextSleepLength;
@@ -137,7 +141,7 @@ long shortestWindTime;
 
 // Grove AM2315 - 5V Arduino Drivers
 
-ESG_AM2315 am2315;
+SDL_ESP8266_HR_AM2315 am2315;
 
 float dataAM2315[2];  //Array to hold data returned by sensor.  [0,1] => [Humidity, Temperature]
 boolean OK;  // 1=successful read
@@ -420,6 +424,8 @@ void setup()
   // setup initial values of variables
 
   wakeState = REBOOT;
+  Alarm_State_1 = false;
+  Alarm_State_2 = false;
   nextSleepLength = SLEEPCYCLE;
 
 
@@ -583,10 +589,12 @@ void loop()
 #endif
 
 
-  if ((wakeState == SLEEP_INTERRUPT) || (wakeState == ALARM_INTERRUPT))
+  if ((wakeState == SLEEP_INTERRUPT) || (Alarm_State_1== true)  || (Alarm_State_2== true))
   {
 
     wakeState = NO_INTERRUPT;
+    Alarm_State_1 = false;
+    Alarm_State_2 = false;
 
     Serial.print(F("MessageCount="));
     Serial.println(MessageCount);
@@ -740,13 +748,14 @@ void loop()
 #if defined(TXDEBUG)
     Serial.println(F("Using DS3231 to Wake Up"));
 #endif
-    delay(100);
+    delay(50);
     Sleepy::powerDown ();
 
     if (RTC.alarm(ALARM_1))
     {
       Serial.println("ALARM_1 Found");
       wakeState = ALARM_INTERRUPT;
+      Alarm_State_1 = true;
       // remove one rain click
       if (TotalRainClicks > 0)
         TotalRainClicks = TotalRainClicks - 1;
@@ -757,6 +766,7 @@ void loop()
     {
       Serial.println("ALARM_2 Found");
       wakeState = ALARM_INTERRUPT;
+      Alarm_State_2 = true;
       // remove one rain click
       if (TotalRainClicks > 0)
         TotalRainClicks = TotalRainClicks - 1;
