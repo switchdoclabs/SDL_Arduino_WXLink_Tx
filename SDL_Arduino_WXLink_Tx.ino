@@ -76,9 +76,10 @@ unsigned long MessageCount = 0;
 
 
 #include "avr/pgmspace.h"
-
-#include "DS3232RTC/DS3232RTC.h"
 #include <Time.h>
+#include <TimeLib.h>
+#include "DS3232RTC.h"
+
 #include <Wire.h>
 
 // Note:   We found a long term reliablity problem with the AM2315 (took weeks to manifest), so we went to our High Reliablity AM2315 and modified it to work on the Mini Pro LP.
