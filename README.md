@@ -4,7 +4,9 @@ Designed for the Mini Pro LP Arduino Board from SwitchDoc Labs
 
 September 3, 2016
 
-SOFTWAREVERSION 004 
+SOFTWAREVERSION 005 
+
+October 12, 2016 - Fixed negative temperature reading from AM2315
 
 This software is preloaded in the WXLink kit as marketed (Tx or Rx)
 

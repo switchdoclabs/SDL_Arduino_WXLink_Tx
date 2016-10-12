@@ -5,7 +5,7 @@
 #undef TXDEBUG
 #include <JeeLib.h>
 
-#define SOFTWAREVERSION 004
+#define SOFTWAREVERSION 005
 
 // WIRELESSID is changed if you have more than one unit reporting in the same area.  It is coded in protocol as WIRELESSID*10+SOFTWAREVERSION
 #define WIRELESSID 2
@@ -38,7 +38,7 @@ SDL_Arduino_INA3221 SunAirPlus;
 #define WATCHDOG_2 9
 
 // Number of milliseconds between data out - set 1000 or or 30000 or 60000 if you are using DS3231
-#define SLEEPCYCLE 30000
+#define SLEEPCYCLE 1000
 
 // Note:  If you are using a External WatchDog Timer, then you should set the timer to exceed SLEEPCYCLE by at least 10%.  If you are using the SwitchDoc Labs Dual WatchDog, SLEEPCYCLE must be less than 240 seconds
 //        or what you set the WatchDog timeout interval.
@@ -607,6 +607,7 @@ void loop()
       Serial.print(F("Outside Humidity (%RH): ")); Serial.println(dataAM2315[0]);
       OutsideTemperature = dataAM2315[1];
       OutsideHumidity = dataAM2315[0];
+
 
     }
     else

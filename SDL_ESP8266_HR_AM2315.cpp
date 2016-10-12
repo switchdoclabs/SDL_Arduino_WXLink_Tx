@@ -45,10 +45,10 @@ boolean SDL_ESP8266_HR_AM2315::readData(float *dataArray) {
   //Wire.begin(4, 5);   // some ESP8266 devices require 5, 4 instead of 4,5
   //Wire.begin(5, 4);   // some ESP8266 devices require 5, 4 instead of 4,5
   Wire.begin();
-  
+
   Wire.setClock(400000L);
 
-  
+
   Wire.beginTransmission(AM2315_I2CADDR);
   Wire.write(AM2315_READREG);
   Wire.endTransmission();
@@ -75,7 +75,7 @@ boolean SDL_ESP8266_HR_AM2315::readData(float *dataArray) {
 
   //interrupts();
   //ETS_UART_INTR_ENABLE();
-  
+
   yield();
 
 
@@ -89,10 +89,25 @@ boolean SDL_ESP8266_HR_AM2315::readData(float *dataArray) {
 
     dataArray[0] = humidity;
 
-    temp = reply[4];
+    // check for negative temperature
+
+    bool negative;
+    negative = false;
+
+    if (reply[4] & 0x80)
+    {
+      negative = true;
+
+    }
+
+    temp = reply[4] & 0x7F;
     temp *= 256;
     temp += reply[5];
     temp /= 10;
+
+    if (negative)
+      temp = -temp;
+
 
     // leave in C
     //  dataArray[1] = (temp * 1.8)+32;
